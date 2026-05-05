@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Protocol Zero | Hardened Security</title>
+    <title>Nexus Protocol Zero | Final Vault</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
@@ -16,176 +17,147 @@
 </head>
 <body class="h-screen w-screen flex">
 
-    <!-- LOGIN / REGISTER SCREEN -->
+    <!-- LOGIN SCREEN -->
     <div id="login-screen" class="fixed inset-0 z-50 bg-black flex items-center justify-center p-4">
-        <div class="glass p-10 rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,255,136,0.1)]">
-            <h2 id="auth-title" class="text-2xl font-bold mb-8 text-center tracking-[0.3em] text-emerald-400">SECURE LOGIN</h2>
-            <div class="space-y-5">
-                <input type="text" id="log-user" placeholder="Enter Username" class="w-full bg-zinc-900/50 border border-emerald-900/50 p-4 rounded-xl text-white focus:outline-none focus:border-emerald-400">
-                <div class="relative">
-                    <input type="password" id="log-pass" placeholder="Enter Password" class="w-full bg-zinc-900/50 border border-emerald-900/50 p-4 rounded-xl text-white focus:outline-none focus:border-emerald-400">
-                    <button onclick="togglePass('log-pass')" class="absolute right-4 top-4 text-emerald-500 opacity-70 hover:opacity-100">👁️</button>
-                </div>
-                <input type="text" id="log-city" placeholder="Enter City" class="w-full bg-zinc-900/50 border border-emerald-900/50 p-4 rounded-xl text-white focus:outline-none focus:border-emerald-400">
-                
-                <button id="auth-btn" onclick="processAuth()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-xl uppercase tracking-tighter transition-all">
-                    Initialize Authentication
-                </button>
-                <p id="auth-msg" class="text-[10px] text-center opacity-40 uppercase tracking-widest"></p>
+        <div class="glass p-10 rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,255,136,0.1)] text-center">
+            <h2 id="auth-title" class="text-2xl font-bold mb-8 tracking-[0.3em] text-emerald-400 uppercase">System Lock</h2>
+            <div class="space-y-5 text-left">
+                <input type="text" id="log-user" placeholder="Username" class="w-full bg-zinc-900 border border-emerald-900/50 p-4 rounded-xl text-white focus:outline-none">
+                <input type="password" id="log-pass" placeholder="Password" class="w-full bg-zinc-900 border border-emerald-900/50 p-4 rounded-xl text-white focus:outline-none">
+                <input type="text" id="log-city" placeholder="City" class="w-full bg-zinc-900 border border-emerald-900/50 p-4 rounded-xl text-white focus:outline-none">
+                <button onclick="processAuth()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-xl uppercase transition-all">Execute Authentication</button>
             </div>
         </div>
     </div>
 
     <!-- MAIN DASHBOARD -->
-    <div id="main-ui" class="hidden flex h-full w-full animate-in fade-in duration-700">
+    <div id="main-ui" class="hidden flex h-full w-full">
         <!-- SIDEBAR -->
         <div class="w-72 glass border-r border-emerald-900/20 flex flex-col p-8">
-            <h1 class="font-bold text-2xl mb-12 tracking-tighter">NEXUS<span class="text-white">ZERO</span></h1>
+            <h1 class="font-bold text-2xl mb-12 tracking-tighter italic">NEXUS<span class="text-white">ZERO</span></h1>
             <nav class="space-y-3 flex-1">
-                <button onclick="showTab('generate')" id="btn-generate" class="sidebar-btn active w-full text-left p-4 rounded-xl text-xs font-bold uppercase tracking-widest">Generate QR</button>
-                <button onclick="showTab('verify')" id="btn-verify" class="sidebar-btn w-full text-left p-4 rounded-xl text-xs font-bold uppercase tracking-widest">Verify QR</button>
-                <button onclick="showTab('about')" id="btn-about" class="sidebar-btn w-full text-left p-4 rounded-xl text-xs font-bold uppercase tracking-widest">About Protocol</button>
+                <button onclick="showTab('generate')" id="btn-generate" class="sidebar-btn active w-full text-left p-4 rounded-xl text-xs font-bold uppercase">Generate QR</button>
+                <button onclick="showTab('verify')" id="btn-verify" class="sidebar-btn w-full text-left p-4 rounded-xl text-xs font-bold uppercase">Verify Image QR</button>
+                <button onclick="showTab('about')" id="btn-about" class="sidebar-btn w-full text-left p-4 rounded-xl text-xs font-bold uppercase">About</button>
             </nav>
-            <button onclick="location.reload()" class="text-[10px] text-red-500 font-bold uppercase hover:underline">Force Logout</button>
+            <button onclick="location.reload()" class="text-red-500 text-[10px] font-bold uppercase">Emergency Logout</button>
         </div>
 
-        <!-- CONTENT AREA -->
-        <div class="flex-1 p-12 overflow-y-auto bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900/10 via-transparent to-transparent">
-            <!-- GENERATE TAB -->
+        <!-- CONTENT -->
+        <div class="flex-1 p-12 overflow-y-auto">
+            <!-- TAB: GENERATE -->
             <div id="tab-generate" class="tab-content space-y-8">
-                <h2 class="text-4xl font-bold tracking-tight">QR Engine <span class="text-zinc-500 text-lg font-light">/ Protocol Alpha</span></h2>
-                <div class="glass p-12 rounded-[2rem] max-w-2xl text-center space-y-8">
-                    <div class="space-y-2">
-                        <label class="text-[10px] uppercase opacity-40 tracking-[0.3em]">Operator Identity</label>
-                        <input type="text" id="op-name" placeholder="Name..." class="bg-transparent border-b-2 border-emerald-800 text-3xl text-center w-full focus:outline-none focus:border-emerald-400 py-3 transition-colors">
+                <h2 class="text-4xl font-bold">Secure Engine</h2>
+                <div class="glass p-10 rounded-[2rem] max-w-xl text-center space-y-6 border-emerald-500/20 border-2">
+                    <input type="text" id="op-name" placeholder="Operator Name" class="bg-transparent border-b-2 border-emerald-800 text-3xl text-center w-full focus:outline-none py-2 text-white">
+                    <button onclick="startBiometricFlow()" class="px-10 py-5 bg-emerald-500 text-black font-black rounded-2xl hover:scale-105 transition-all">GENERATE UNIQUE ID</button>
+                    <div id="qr-output" class="hidden pt-6">
+                        <div id="qrcode" class="inline-block p-4 bg-white rounded-xl shadow-2xl"></div>
+                        <p id="unique-id" class="text-[10px] mt-4 opacity-40 font-mono"></p>
                     </div>
-                    <button onclick="startBiometricFlow()" class="group relative px-12 py-6 bg-emerald-500 text-black font-black rounded-2xl transition-all hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]">
-                        VERIFY FINGERPRINT & GENERATE
+                </div>
+            </div>
+
+            <!-- TAB: VERIFY -->
+            <div id="tab-verify" class="tab-content hidden space-y-8">
+                <h2 class="text-4xl font-bold text-emerald-400">Optical Verification</h2>
+                <div class="glass p-10 rounded-[2rem] max-w-xl text-center space-y-6">
+                    <p class="text-xs opacity-50 uppercase tracking-widest italic">Upload QR Image for Forensic Scan</p>
+                    <input type="file" id="qr-upload" accept="image/*" class="hidden" onchange="handleQRUpload(event)">
+                    <button onclick="document.getElementById('qr-upload').click()" class="w-full py-12 border-2 border-dashed border-emerald-500/40 rounded-3xl text-sm font-bold opacity-70 hover:opacity-100 hover:border-emerald-500 transition-all">
+                        SELECT IMAGE TO VERIFY
                     </button>
-                    <div id="qr-output" class="hidden pt-8 animate-in zoom-in duration-500">
-                        <div id="qrcode" class="inline-block p-5 bg-white rounded-2xl shadow-2xl"></div>
-                        <p id="unique-id" class="text-[10px] mt-6 opacity-30 font-mono"></p>
+                    <div id="scan-result" class="hidden p-6 bg-emerald-900/10 rounded-2xl text-left border border-emerald-500/20">
+                        <h3 class="text-emerald-400 font-bold mb-2 uppercase text-xs">Decoded Data:</h3>
+                        <pre id="decoded-text" class="text-[10px] text-white whitespace-pre-wrap font-mono"></pre>
                     </div>
                 </div>
             </div>
 
-            <!-- VERIFY TAB -->
-            <div id="tab-verify" class="tab-content hidden">
-                <h2 class="text-4xl font-bold mb-8">Verification Node</h2>
-                <div class="glass p-16 rounded-[2rem] text-center border-dashed border-2 border-emerald-500/20">
-                    <div class="w-80 h-80 bg-zinc-900/50 mx-auto rounded-3xl flex flex-col items-center justify-center border border-emerald-500/10">
-                        <div class="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <p class="text-xs font-bold opacity-50">INITIALIZING OPTICAL SENSOR...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ABOUT TAB -->
+            <!-- TAB: ABOUT -->
             <div id="tab-about" class="tab-content hidden">
-                <h2 class="text-4xl font-bold mb-8">System Intel</h2>
-                <div class="glass p-10 rounded-[2rem] max-w-3xl space-y-6 text-zinc-300">
-                    <p class="text-lg">This is <span class="text-emerald-400 font-bold">Protocol Zero</span>: A modular digital ecosystem designed for 100% decentralized identity verification.</p>
-                    <div class="grid grid-cols-2 gap-4 text-xs font-mono">
-                        <div class="p-4 bg-white/5 rounded-xl border border-white/10">ID: UUID v4 Standard</div>
-                        <div class="p-4 bg-white/5 rounded-xl border border-white/10">AUTH: WebAuthn Biometric</div>
-                        <div class="p-4 bg-white/5 rounded-xl border border-white/10">SECURITY: Local-First Vault</div>
-                        <div class="p-4 bg-white/5 rounded-xl border border-white/10">STATUS: Active Alpha</div>
-                    </div>
+                <h2 class="text-4xl font-bold mb-6 italic">Protocol Intel</h2>
+                <div class="glass p-10 rounded-[2rem] max-w-2xl text-zinc-400 leading-relaxed">
+                    Designed by <span class="text-emerald-400 font-bold italic underline">Aryan Mangal</span>. <br><br>
+                    Project Nexus is a modular ecosystem for the future of digital verification.
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function togglePass(id) {
-            const x = document.getElementById(id);
-            x.type = x.type === "password" ? "text" : "password";
-        }
-
-        // --- THE SECURITY FIX ---
+        // --- AUTH LOGIC ---
         function processAuth() {
             const u = document.getElementById('log-user').value.trim();
             const p = document.getElementById('log-pass').value.trim();
             const c = document.getElementById('log-city').value.trim();
-            
-            const savedData = JSON.parse(localStorage.getItem('nexus_master_vault'));
+            const saved = JSON.parse(localStorage.getItem('nexus_master_vault'));
 
-            if (!savedData) {
-                // Pehli baar setup kar raha hai
+            if (!saved) {
                 if (u && p && c) {
-                    const setup = { user: u, pass: p, city: c };
-                    localStorage.setItem('nexus_master_vault', JSON.stringify(setup));
-                    alert("MASTER IDENTITY CREATED. RELOADING FOR LOGIN.");
+                    localStorage.setItem('nexus_master_vault', JSON.stringify({user:u, pass:p, city:c}));
+                    alert("Vault Initialized! Please Log In.");
                     location.reload();
-                } else {
-                    alert("Please fill all fields to setup vault.");
-                }
+                } else { alert("Setup Required."); }
             } else {
-                // Strict Matching Logic [Security Fix]
-                if (u === savedData.user && p === savedData.pass && c === savedData.city) {
+                if (u === saved.user && p === saved.pass && c === saved.city) {
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('main-ui').classList.remove('hidden');
-                } else {
-                    alert("ACCESS DENIED: Credentials Mismatch.");
-                    document.getElementById('auth-msg').innerText = "Attempts Logged. System Locked.";
-                }
+                } else { alert("Invalid Credentials."); }
             }
         }
 
-        // Change button text based on setup status
         window.onload = () => {
-            const saved = localStorage.getItem('nexus_master_vault');
-            if (!saved) {
-                document.getElementById('auth-title').innerText = "INITIAL SETUP";
-                document.getElementById('auth-btn').innerText = "Create Master Vault";
+            if(!localStorage.getItem('nexus_master_vault')) {
+                document.getElementById('auth-title').innerText = "Create Identity";
             }
         };
 
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
-            document.getElementById('btn-' + tabName).classList.add('active');
+        // --- UI LOGIC ---
+        function showTab(t) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-'+t).classList.remove('hidden');
+            document.getElementById('btn-'+t).classList.add('active');
         }
 
+        // --- QR LOGIC ---
         async function startBiometricFlow() {
             const op = document.getElementById('op-name').value;
             if(!op) return alert("Operator Identity Required.");
-
-            try {
-                // Triggers native biometric sensor (Fingerprint/Face/PIN)
-                await navigator.credentials.get({
-                    publicKey: {
-                        challenge: new Uint8Array([1,2,3,4]),
-                        timeout: 60000,
-                        allowCredentials: []
-                    }
-                });
-                // If hardware approves, generate QR
-                generateNexusQR(op);
-            } catch (e) {
-                // Browser security prompt fallback
-                if(confirm("Biometric Handshake Active. Confirm physical presence?")) {
-                    generateNexusQR(op);
-                }
+            if(confirm("Confirm Physical Presence for Biometric Auth?")) {
+                const uid = 'NEX-' + Math.random().toString(36).substr(2,9).toUpperCase() + '-' + Date.now();
+                const container = document.getElementById("qrcode");
+                container.innerHTML = "";
+                const data = JSON.stringify({id: uid, op: op, time: new Date().toLocaleString(), origin: "NEXUS-PROTOCOL-ZERO"});
+                new QRCode(container, { text: data, width: 200, height: 200 });
+                document.getElementById('qr-output').classList.remove('hidden');
+                document.getElementById('unique-id').innerText = "UID: " + uid;
             }
         }
 
-        function generateNexusQR(op) {
-            const qrContainer = document.getElementById("qrcode");
-            qrContainer.innerHTML = "";
-            const uid = 'NEX-' + Math.random().toString(36).substr(2, 9).toUpperCase() + '-' + Date.now();
-            
-            const data = JSON.stringify({
-                id: uid,
-                op: op,
-                ts: new Date().toISOString(),
-                secure_hash: btoa(uid + op)
-            });
-
-            new QRCode(qrContainer, { text: data, width: 200, height: 200 });
-            document.getElementById('qr-output').classList.remove('hidden');
-            document.getElementById('unique-id').innerText = "CRYPTO-ID: " + uid;
+        // --- SCANNER LOGIC ---
+        function handleQRUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+                    canvas.width = img.width; canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    if (code) {
+                        document.getElementById('scan-result').classList.remove('hidden');
+                        document.getElementById('decoded-text').innerText = JSON.stringify(JSON.parse(code.data), null, 4);
+                    } else { alert("Could not detect valid Nexus QR."); }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
     </script>
 </body>
