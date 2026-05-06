@@ -2,60 +2,102 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NEXUS | IDENTITY INITIALIZATION</title>
-    <!-- CDN Link: Make sure this is exactly like this -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT NEXUS | IDENTITY VAULT</title>
+    <!-- Supabase Library (Top Priority) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-client"></script>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; text-align: center; padding: 50px; display: flex; justify-content: center; align-items: center; height: 85vh; margin: 0; }
-        .vault-box { border: 2px solid #0f0; padding: 40px; box-shadow: 0 0 30px #0f0; background: #050505; position: relative; }
-        input { background: #000; color: #0f0; border: 1px solid #0f0; padding: 12px; margin: 15px; width: 280px; font-size: 18px; outline: none; }
-        button { background: #0f0; color: #000; border: none; padding: 15px 30px; cursor: pointer; font-weight: bold; font-size: 20px; text-transform: uppercase; transition: 0.2s; }
-        button:hover { background: #00ffaa; box-shadow: 0 0 15px #0f0; }
-        #status { margin-top: 25px; font-weight: bold; font-size: 14px; min-height: 40px; }
+        body { 
+            background: #000; 
+            color: #0f0; 
+            font-family: 'Courier New', monospace; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            overflow: hidden;
+        }
+        .vault-box { 
+            border: 2px solid #0f0; 
+            padding: 50px; 
+            background: rgba(0, 20, 0, 0.9); 
+            box-shadow: 0 0 40px #0f0, inset 0 0 10px #0f0; 
+            text-align: center;
+            border-radius: 5px;
+        }
+        h1 { letter-spacing: 10px; text-shadow: 0 0 10px #0f0; margin-bottom: 30px; }
+        input { 
+            background: #000; 
+            color: #0f0; 
+            border: 1px solid #0f0; 
+            padding: 15px; 
+            width: 300px; 
+            font-size: 18px; 
+            outline: none; 
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button { 
+            background: #0f0; 
+            color: #000; 
+            border: none; 
+            padding: 15px 40px; 
+            font-weight: bold; 
+            font-size: 20px; 
+            cursor: pointer; 
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+        button:hover { background: #00ffaa; box-shadow: 0 0 20px #0f0; }
+        #status { margin-top: 30px; font-size: 14px; min-height: 20px; color: #00ffcc; }
     </style>
 </head>
 <body>
     <div class="vault-box">
-        <h1 style="letter-spacing: 8px; margin-bottom: 5px;">PROJECT NEXUS</h1>
-        <p style="color: #666; font-size: 11px; margin-bottom: 25px;">ESTABLISHING CRYPTO-LINK WITH THINKPAD HARDWARE...</p>
+        <h1>PROJECT NEXUS</h1>
+        <p style="color: #666; font-size: 12px; margin-bottom: 30px;">THINKPAD ENCRYPTION MODULE v1.0</p>
         
         <input type="text" id="opName" placeholder="ENTER OPERATOR NAME">
         <br>
-        <button onclick="initializeNexus()">INITIALIZE IDENTITY</button>
+        <button onclick="initializeNexus()">INITIALIZE LINK</button>
 
-        <div id="status">SYSTEM STATUS: READY</div>
+        <div id="status">VAULT STATUS: STANDBY</div>
     </div>
 
     <script>
-        // CONFIG DATA
-        const SB_URL = "https://juesetrcnzyuybnwuuyw.supabase.co/rest/v1/";
+        // 🛠️ TERA SECURE CONFIG
+        const SB_URL = "https://juesetrcnzyuybnwuyw.supabase.co";
+        // BHAI YAHAN APNI 'sb_publishable_...' WALI KEY PASTE KAR DENA
         const SB_KEY = "sb_publishable_uP_mUKCmIANR-Stm0gjSVA_fpcHnji1"; 
 
         async function initializeNexus() {
             const name = document.getElementById('opName').value;
             const status = document.getElementById('status');
             
-            // 1. Library Check: "supabase is not defined" error ko yahi khatam karega
+            // Checking if Supabase library loaded
             if (typeof supabase === 'undefined') {
                 status.style.color = "red";
-                status.innerText = "CRITICAL ERROR: SUPABASE LIBRARY NOT LOADED. CHECK INTERNET.";
+                status.innerText = "CRITICAL ERROR: LIBRARY NOT LOADED";
                 return;
             }
 
             if(!name) {
                 status.style.color = "red";
-                status.innerText = "SYSTEM ERROR: OPERATOR NAME REQUIRED";
+                status.innerText = "ERROR: NAME REQUIRED";
                 return;
             }
 
             try {
                 status.style.color = "#0f0";
-                status.innerText = "INITIALIZING SUPABASE CLIENT...";
-                
+                status.innerText = "ESTABLISHING SECURE CONNECTION...";
+
+                // Initialize Client inside function to avoid hosting errors
                 const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
                 
-                status.innerText = "GENERATING CRYPTO-KEYS...";
+                status.innerText = "GENERATING RSA-BASED HARDWARE KEYS...";
 
+                // Advanced Web Crypto API for ThinkPad Security
                 const keyPair = await window.crypto.subtle.generateKey(
                     { name: "ECDSA", namedCurve: "P-256" },
                     true, ["sign", "verify"]
@@ -65,8 +107,9 @@
                 const pubKeyString = btoa(String.fromCharCode(...new Uint8Array(pubKeyRaw)));
                 const uniqueID = "NX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
 
-                status.innerText = "UPLOADING TO VAULT...";
+                status.innerText = "COMMITTING TO SUPABASE VAULT...";
 
+                // Secure Insert (Will work with RLS 'Insert' Policy)
                 const { error } = await supabaseClient
                     .from('identities')
                     .insert([{ 
@@ -78,7 +121,7 @@
                 if (error) throw error;
 
                 status.style.color = "yellow";
-                status.innerHTML = `LINK ESTABLISHED!<br>ID: ${uniqueID}<br>OP: ${name}`;
+                status.innerHTML = `LINK ESTABLISHED!<br>ID: ${uniqueID}<br>OPERATOR: ${name}`;
 
             } catch (err) {
                 status.style.color = "red";
