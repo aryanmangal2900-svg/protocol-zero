@@ -3,194 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROJECT NEXUS | IMMUTABLE IDENTITY VAULT</title>
-    <!-- QR Code Generation Library -->
+    <title>PROJECT NEXUS | SECURE TERMINAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Library for scanning QR from images -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        :root {
-            --neon-green: #0f0;
-            --dark-bg: #000;
-            --shadow-glow: 0 0 20px rgba(0, 255, 0, 0.4);
-        }
+        :root { --neon: #0f0; --bg: #000; --panel: #050505; }
+        body { background: var(--bg); color: var(--neon); font-family: 'Courier New', monospace; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .box { border: 2px solid var(--neon); padding: 30px; background: var(--panel); box-shadow: 0 0 20px rgba(0,255,0,0.2); width: 350px; text-align: center; border-radius: 5px; }
+        h2 { letter-spacing: 3px; text-transform: uppercase; margin-top: 0; }
+        
+        .input-group { position: relative; margin-bottom: 15px; text-align: left; }
+        input { background: #000; color: var(--neon); border: 1px solid var(--neon); padding: 12px; width: 88%; outline: none; font-size: 14px; }
+        .eye-btn { position: absolute; right: 10px; top: 12px; cursor: pointer; background: none; border: none; color: var(--neon); font-size: 18px; }
+        
+        button { background: var(--neon); color: #000; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #00cc00; box-shadow: 0 0 15px var(--neon); }
 
-        body {
-            background-color: var(--dark-bg);
-            color: var(--neon-green);
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        .terminal-container {
-            border: 2px solid var(--neon-green);
-            padding: 40px;
-            background: rgba(0, 15, 0, 0.95);
-            box-shadow: var(--shadow-glow);
-            text-align: center;
-            width: 380px;
-            position: relative;
-        }
-
-        .terminal-container::before {
-            content: "NEXUS SECURE ENCLAVE v2.0";
-            position: absolute;
-            top: -12px;
-            left: 20px;
-            background: var(--dark-bg);
-            padding: 0 10px;
-            font-size: 10px;
-            letter-spacing: 2px;
-        }
-
-        h1 {
-            letter-spacing: 6px;
-            font-size: 22px;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-        }
-
-        input {
-            background: transparent;
-            color: var(--neon-green);
-            border: 1px solid var(--neon-green);
-            padding: 15px;
-            width: 85%;
-            font-size: 16px;
-            margin-bottom: 25px;
-            outline: none;
-            text-align: center;
-        }
-
-        button {
-            background: var(--neon-green);
-            color: #000;
-            border: none;
-            padding: 15px;
-            width: 93%;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-        }
-
-        button:hover {
-            background: #00cc00;
-            box-shadow: 0 0 15px var(--neon-green);
-            transform: scale(1.02);
-        }
-
-        #qr-container {
-            margin-top: 30px;
-            display: none;
-            justify-content: center;
-            background: #fff; /* QR needs light background to be scan-able */
-            padding: 20px;
-            border-radius: 4px;
-        }
-
-        #status-display {
-            margin-top: 25px;
-            font-size: 11px;
-            color: #00ffcc;
-            text-align: left;
-            border-top: 1px solid #111;
-            padding-top: 10px;
-        }
-
-        .scan-msg {
-            color: yellow;
-            font-size: 10px;
-            margin-top: 10px;
-            display: none;
-        }
+        #dashboard, #section-gen, #section-verify, #section-about { display: none; }
+        .nav-btn { margin-bottom: 10px; }
+        #qr-result { background: white; padding: 15px; display: inline-block; margin-top: 15px; display: none; }
+        .back-btn { background: none; color: var(--neon); border: 1px solid var(--neon); margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="terminal-container">
-        <h1>PROJECT NEXUS</h1>
+    <!-- SECTION 1: AUTHENTICATION (Login/Register) -->
+    <div id="auth-box" class="box">
+        <h2 id="auth-title">NEXUS INITIALIZE</h2>
+        <p id="auth-desc" style="font-size: 10px; color: #666;">ENTER SYSTEM CREDENTIALS</p>
         
-        <input type="text" id="opName" placeholder="ENTER OPERATOR NAME" autocomplete="off">
-        <button onclick="generateNexusIdentity()">INITIALIZE IDENTITY BINDING</button>
+        <div class="input-group">
+            <input type="text" id="reg-name" placeholder="OPERATOR NAME">
+        </div>
+        <div class="input-group">
+            <input type="text" id="reg-city" placeholder="OPERATOR CITY">
+        </div>
+        <div class="input-group">
+            <input type="password" id="reg-pass" placeholder="SYSTEM PASSWORD">
+            <button class="eye-btn" onclick="toggleView('reg-pass')">👁️</button>
+        </div>
+        
+        <button id="main-auth-btn" onclick="handleAuth()">ACCESS SYSTEM</button>
+    </div>
 
-        <div id="qr-container"></div>
-        <div id="scan-info" class="scan-msg">IDENTITY PERMANENTLY LOCKED TO HARDWARE</div>
-        
-        <div id="status-display">SYSTEM STATUS: AWAITING INPUT...</div>
+    <!-- SECTION 2: DASHBOARD -->
+    <div id="dashboard" class="box">
+        <h2>NEXUS DASHBOARD</h2>
+        <p style="font-size: 10px; margin-bottom: 20px;">WELCOME, OPERATOR <span id="display-user"></span></p>
+        <button class="nav-btn" onclick="showSection('section-gen')">1. GENERATE IDENTITY</button>
+        <button class="nav-btn" onclick="showSection('section-verify')">2. VERIFY IDENTITY</button>
+        <button class="nav-btn" onclick="showSection('section-about')">3. ABOUT NEXUS</button>
+        <button class="back-btn" onclick="location.reload()">LOGOUT SYSTEM</button>
+    </div>
+
+    <!-- SECTION 3: GENERATE QR -->
+    <div id="section-gen" class="box">
+        <h2>GENERATE QR</h2>
+        <input type="text" id="gen-name" placeholder="TARGET NAME">
+        <button onclick="createQR()">BIND IDENTITY</button>
+        <div id="qr-result"></div>
+        <button class="back-btn" onclick="showSection('dashboard')">BACK TO DASHBOARD</button>
+    </div>
+
+    <!-- SECTION 4: VERIFY QR -->
+    <div id="section-verify" class="box">
+        <h2>VERIFICATION</h2>
+        <p style="font-size: 10px;">UPLOAD QR IMAGE FOR SCANNING</p>
+        <input type="file" id="qr-input" accept="image/*" style="border: none;">
+        <button onclick="verifyUploadedQR()">START SCAN</button>
+        <div id="verify-status" style="margin-top: 15px; font-size: 12px;"></div>
+        <button class="back-btn" onclick="showSection('dashboard')">BACK TO DASHBOARD</button>
+    </div>
+
+    <!-- SECTION 5: ABOUT -->
+    <div id="section-about" class="box">
+        <h2>ABOUT US</h2>
+        <p style="font-size: 12px; text-align: left; line-height: 1.6;">
+            PROJECT NEXUS IS AN INDUSTRIAL-GRADE IDENTITY ECOSYSTEM BEYOND THE REACH OF CONVENTIONAL AI. <br><br>
+            - HARDWARE BINDING<br>
+            - ZERO-SERVER TRUST<br>
+            - CRYPTO-SIGNATURES
+        </p>
+        <button class="back-btn" onclick="showSection('dashboard')">BACK TO DASHBOARD</button>
     </div>
 
     <script>
-        // 1. HARDWARE FINGERPRINTING LOGIC
-        function captureHardwareDNA() {
-            const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl');
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            
-            // Extracts GPU and Hardware specifics unique to your ThinkPad
-            const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "unknown";
-            const dnaString = [
-                navigator.hardwareConcurrency, // CPU Cores
-                renderer,
-                screen.colorDepth,
-                navigator.deviceMemory || "N/A"
-            ].join('|');
-
-            // Create a short 12-character unique hardware hash
-            return btoa(dnaString).substring(5, 17).toUpperCase();
+        // Check if user is already registered
+        const isRegistered = localStorage.getItem('nexus_user');
+        if(isRegistered) {
+            document.getElementById('auth-title').innerText = "SYSTEM LOGIN";
+            document.getElementById('auth-desc').innerText = "INPUT REGISTERED DETAILS";
         }
 
-        async function generateNexusIdentity() {
-            const name = document.getElementById('opName').value;
-            const qrBox = document.getElementById('qr-container');
-            const status = document.getElementById('status-display');
-            const info = document.getElementById('scan-info');
+        function toggleView(id) {
+            const x = document.getElementById(id);
+            x.type = x.type === "password" ? "text" : "password";
+        }
 
-            if (!name) {
-                status.innerText = "ERROR: OPERATOR NAME REQUIRED";
-                status.style.color = "red";
-                return;
+        function handleAuth() {
+            const name = document.getElementById('reg-name').value;
+            const city = document.getElementById('reg-city').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            if(!name || !city || !pass) { alert("ALL FIELDS REQUIRED"); return; }
+
+            const userData = JSON.stringify({ name, city, pass });
+
+            if(!isRegistered) {
+                // Registering for the first time
+                localStorage.setItem('nexus_user', userData);
+                alert("OPERATOR REGISTERED SUCCESSFULLY");
+                enterDashboard(name);
+            } else {
+                // Login check
+                const saved = localStorage.getItem('nexus_user');
+                if(saved === userData) {
+                    enterDashboard(name);
+                } else {
+                    alert("ACCESS DENIED: 100% ACCURACY REQUIRED");
+                }
             }
+        }
 
-            status.innerText = "CALIBRATING HARDWARE DNA...";
-            status.style.color = "#00ffcc";
+        function enterDashboard(name) {
+            document.getElementById('auth-box').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('display-user').innerText = name.toUpperCase();
+        }
 
-            // Simulating a small delay for "Industrial" feel
-            setTimeout(async () => {
-                const hwHash = captureHardwareDNA();
-                const uniqueID = "NX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+        function showSection(id) {
+            const sections = ['dashboard', 'section-gen', 'section-verify', 'section-about'];
+            sections.forEach(s => document.getElementById(s).style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+        }
 
-                // 2. DATA BINDING PAYLOAD
-                const payload = {
-                    operator: name,
-                    id: uniqueID,
-                    hardware_bond: hwHash,
-                    auth_type: "ECC-PERPETUAL"
+        // --- QR GENERATION ---
+        function createQR() {
+            const target = document.getElementById('gen-name').value;
+            const qrBox = document.getElementById('qr-result');
+            if(!target) return;
+
+            qrBox.innerHTML = "";
+            qrBox.style.display = "inline-block";
+            new QRCode(qrBox, {
+                text: JSON.stringify({ name: target, timestamp: Date.now(), secure_id: Math.random().toString(36).substr(2, 9) }),
+                width: 150, height: 150
+            });
+        }
+
+        // --- QR VERIFICATION FROM PHOTO ---
+        function verifyUploadedQR() {
+            const fileInput = document.getElementById('qr-input');
+            const status = document.getElementById('verify-status');
+            
+            if (fileInput.files.length === 0) { alert("SELECT A PHOTO FIRST"); return; }
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                    if (code) {
+                        const data = JSON.parse(code.data);
+                        status.style.color = "yellow";
+                        status.innerHTML = `✅ VERIFIED<br>NAME: ${data.name}<br>ID: ${data.secure_id}`;
+                    } else {
+                        status.style.color = "red";
+                        status.innerText = "❌ INVALID OR CORRUPT QR";
+                    }
                 };
-
-                // 3. GENERATE PERMANENT QR
-                qrBox.innerHTML = "";
-                qrBox.style.display = "flex";
-                
-                new QRCode(qrBox, {
-                    text: JSON.stringify(payload),
-                    width: 200,
-                    height: 200,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-
-                status.style.color = "yellow";
-                status.innerHTML = `IDENTITY ESTABLISHED!<br>ID: ${uniqueID}<br>HW-BOND: ${hwHash}`;
-                info.style.display = "block";
-                
-                console.log("Nexus Identity Payload Securely Generated:", payload);
-            }, 1200);
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(fileInput.files[0]);
         }
     </script>
 </body>
