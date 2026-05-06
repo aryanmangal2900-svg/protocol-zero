@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>NEXUS | IDENTITY INITIALIZATION</title>
+    <!-- CDN Link: Make sure this is exactly like this -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-client"></script>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; text-align: center; padding: 50px; display: flex; justify-content: center; align-items: center; height: 80vh; }
-        .vault-box { border: 2px solid #0f0; padding: 40px; box-shadow: 0 0 30px #0f0; background: #050505; border-radius: 5px; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; text-align: center; padding: 50px; display: flex; justify-content: center; align-items: center; height: 85vh; margin: 0; }
+        .vault-box { border: 2px solid #0f0; padding: 40px; box-shadow: 0 0 30px #0f0; background: #050505; position: relative; }
         input { background: #000; color: #0f0; border: 1px solid #0f0; padding: 12px; margin: 15px; width: 280px; font-size: 18px; outline: none; }
-        button { background: #0f0; color: #000; border: none; padding: 15px 30px; cursor: pointer; font-weight: bold; font-size: 20px; text-transform: uppercase; }
+        button { background: #0f0; color: #000; border: none; padding: 15px 30px; cursor: pointer; font-weight: bold; font-size: 20px; text-transform: uppercase; transition: 0.2s; }
         button:hover { background: #00ffaa; box-shadow: 0 0 15px #0f0; }
-        #status { margin-top: 25px; font-weight: bold; font-size: 14px; }
+        #status { margin-top: 25px; font-weight: bold; font-size: 14px; min-height: 40px; }
     </style>
 </head>
 <body>
     <div class="vault-box">
-        <h1 style="letter-spacing: 8px;">PROJECT NEXUS</h1>
-        <p style="color: #666; font-size: 12px;">ESTABLISHING CRYPTO-LINK WITH THINKPAD HARDWARE...</p>
+        <h1 style="letter-spacing: 8px; margin-bottom: 5px;">PROJECT NEXUS</h1>
+        <p style="color: #666; font-size: 11px; margin-bottom: 25px;">ESTABLISHING CRYPTO-LINK WITH THINKPAD HARDWARE...</p>
         
-        <input type="text" id="opName" placeholder="Aryan Mangal">
+        <input type="text" id="opName" placeholder="ENTER OPERATOR NAME">
         <br>
         <button onclick="initializeNexus()">INITIALIZE IDENTITY</button>
 
@@ -26,7 +27,7 @@
     </div>
 
     <script>
-        // 1. Config ko pehle define kar rhe hain
+        // CONFIG DATA
         const SB_URL = "https://juesetrcnzyuybnwuyw.supabase.co";
         const SB_KEY = "sb_publishable_uP_mUKCmIANR-Stm0gjSVA_fpcHnji1"; 
 
@@ -34,6 +35,13 @@
             const name = document.getElementById('opName').value;
             const status = document.getElementById('status');
             
+            // 1. Library Check: "supabase is not defined" error ko yahi khatam karega
+            if (typeof supabase === 'undefined') {
+                status.style.color = "red";
+                status.innerText = "CRITICAL ERROR: SUPABASE LIBRARY NOT LOADED. CHECK INTERNET.";
+                return;
+            }
+
             if(!name) {
                 status.style.color = "red";
                 status.innerText = "SYSTEM ERROR: OPERATOR NAME REQUIRED";
@@ -41,11 +49,12 @@
             }
 
             try {
-                // 2. Client ko function ke andar initialize kar rhe hain taaki 'before initialization' error na aaye
+                status.style.color = "#0f0";
+                status.innerText = "INITIALIZING SUPABASE CLIENT...";
+                
                 const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
                 
-                status.style.color = "#00ffcc";
-                status.innerText = "GENERATING HARDWARE-BOUND KEYS...";
+                status.innerText = "GENERATING CRYPTO-KEYS...";
 
                 const keyPair = await window.crypto.subtle.generateKey(
                     { name: "ECDSA", namedCurve: "P-256" },
@@ -56,7 +65,7 @@
                 const pubKeyString = btoa(String.fromCharCode(...new Uint8Array(pubKeyRaw)));
                 const uniqueID = "NX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
 
-                status.innerText = "UPLOADING TO SUPABASE VAULT...";
+                status.innerText = "UPLOADING TO VAULT...";
 
                 const { error } = await supabaseClient
                     .from('identities')
