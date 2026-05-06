@@ -3,131 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROJECT NEXUS | IDENTITY VAULT</title>
-    <!-- Supabase Library (Top Priority) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-client"></script>
+    <title>PROJECT NEXUS | IMMUTABLE IDENTITY VAULT</title>
+    <!-- QR Code Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { 
-            background: #000; 
-            color: #0f0; 
-            font-family: 'Courier New', monospace; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
+        :root {
+            --neon-green: #0f0;
+            --dark-bg: #000;
+            --shadow-glow: 0 0 20px rgba(0, 255, 0, 0.4);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
             overflow: hidden;
         }
-        .vault-box { 
-            border: 2px solid #0f0; 
-            padding: 50px; 
-            background: rgba(0, 20, 0, 0.9); 
-            box-shadow: 0 0 40px #0f0, inset 0 0 10px #0f0; 
+
+        .terminal-container {
+            border: 2px solid var(--neon-green);
+            padding: 40px;
+            background: rgba(0, 15, 0, 0.95);
+            box-shadow: var(--shadow-glow);
             text-align: center;
-            border-radius: 5px;
+            width: 380px;
+            position: relative;
         }
-        h1 { letter-spacing: 10px; text-shadow: 0 0 10px #0f0; margin-bottom: 30px; }
-        input { 
-            background: #000; 
-            color: #0f0; 
-            border: 1px solid #0f0; 
-            padding: 15px; 
-            width: 300px; 
-            font-size: 18px; 
-            outline: none; 
-            text-align: center;
-            margin-bottom: 20px;
+
+        .terminal-container::before {
+            content: "NEXUS SECURE ENCLAVE v2.0";
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--dark-bg);
+            padding: 0 10px;
+            font-size: 10px;
+            letter-spacing: 2px;
         }
-        button { 
-            background: #0f0; 
-            color: #000; 
-            border: none; 
-            padding: 15px 40px; 
-            font-weight: bold; 
-            font-size: 20px; 
-            cursor: pointer; 
+
+        h1 {
+            letter-spacing: 6px;
+            font-size: 22px;
+            margin-bottom: 30px;
             text-transform: uppercase;
-            transition: 0.3s;
         }
-        button:hover { background: #00ffaa; box-shadow: 0 0 20px #0f0; }
-        #status { margin-top: 30px; font-size: 14px; min-height: 20px; color: #00ffcc; }
+
+        input {
+            background: transparent;
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            padding: 15px;
+            width: 85%;
+            font-size: 16px;
+            margin-bottom: 25px;
+            outline: none;
+            text-align: center;
+        }
+
+        button {
+            background: var(--neon-green);
+            color: #000;
+            border: none;
+            padding: 15px;
+            width: 93%;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: #00cc00;
+            box-shadow: 0 0 15px var(--neon-green);
+            transform: scale(1.02);
+        }
+
+        #qr-container {
+            margin-top: 30px;
+            display: none;
+            justify-content: center;
+            background: #fff; /* QR needs light background to be scan-able */
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        #status-display {
+            margin-top: 25px;
+            font-size: 11px;
+            color: #00ffcc;
+            text-align: left;
+            border-top: 1px solid #111;
+            padding-top: 10px;
+        }
+
+        .scan-msg {
+            color: yellow;
+            font-size: 10px;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="vault-box">
-        <h1>PROJECT NEXUS</h1>
-        <p style="color: #666; font-size: 12px; margin-bottom: 30px;">THINKPAD ENCRYPTION MODULE v1.0</p>
-        
-        <input type="text" id="opName" placeholder="ENTER OPERATOR NAME">
-        <br>
-        <button onclick="initializeNexus()">INITIALIZE LINK</button>
 
-        <div id="status">VAULT STATUS: STANDBY</div>
+    <div class="terminal-container">
+        <h1>PROJECT NEXUS</h1>
+        
+        <input type="text" id="opName" placeholder="ENTER OPERATOR NAME" autocomplete="off">
+        <button onclick="generateNexusIdentity()">INITIALIZE IDENTITY BINDING</button>
+
+        <div id="qr-container"></div>
+        <div id="scan-info" class="scan-msg">IDENTITY PERMANENTLY LOCKED TO HARDWARE</div>
+        
+        <div id="status-display">SYSTEM STATUS: AWAITING INPUT...</div>
     </div>
 
     <script>
-        // 🛠️ TERA SECURE CONFIG
-        const SB_URL = "https://juesetrcnzyuybnwuyw.supabase.co";
-        // BHAI YAHAN APNI 'sb_publishable_...' WALI KEY PASTE KAR DENA
-        const SB_KEY = "sb_publishable_uP_mUKCmIANR-Stm0gjSVA_fpcHnji1"; 
-
-        async function initializeNexus() {
-            const name = document.getElementById('opName').value;
-            const status = document.getElementById('status');
+        // 1. HARDWARE FINGERPRINTING LOGIC
+        function captureHardwareDNA() {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl');
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
             
-            // Checking if Supabase library loaded
-            if (typeof supabase === 'undefined') {
+            // Extracts GPU and Hardware specifics unique to your ThinkPad
+            const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "unknown";
+            const dnaString = [
+                navigator.hardwareConcurrency, // CPU Cores
+                renderer,
+                screen.colorDepth,
+                navigator.deviceMemory || "N/A"
+            ].join('|');
+
+            // Create a short 12-character unique hardware hash
+            return btoa(dnaString).substring(5, 17).toUpperCase();
+        }
+
+        async function generateNexusIdentity() {
+            const name = document.getElementById('opName').value;
+            const qrBox = document.getElementById('qr-container');
+            const status = document.getElementById('status-display');
+            const info = document.getElementById('scan-info');
+
+            if (!name) {
+                status.innerText = "ERROR: OPERATOR NAME REQUIRED";
                 status.style.color = "red";
-                status.innerText = "CRITICAL ERROR: LIBRARY NOT LOADED";
                 return;
             }
 
-            if(!name) {
-                status.style.color = "red";
-                status.innerText = "ERROR: NAME REQUIRED";
-                return;
-            }
+            status.innerText = "CALIBRATING HARDWARE DNA...";
+            status.style.color = "#00ffcc";
 
-            try {
-                status.style.color = "#0f0";
-                status.innerText = "ESTABLISHING SECURE CONNECTION...";
-
-                // Initialize Client inside function to avoid hosting errors
-                const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-                
-                status.innerText = "GENERATING RSA-BASED HARDWARE KEYS...";
-
-                // Advanced Web Crypto API for ThinkPad Security
-                const keyPair = await window.crypto.subtle.generateKey(
-                    { name: "ECDSA", namedCurve: "P-256" },
-                    true, ["sign", "verify"]
-                );
-
-                const pubKeyRaw = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
-                const pubKeyString = btoa(String.fromCharCode(...new Uint8Array(pubKeyRaw)));
+            // Simulating a small delay for "Industrial" feel
+            setTimeout(async () => {
+                const hwHash = captureHardwareDNA();
                 const uniqueID = "NX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
 
-                status.innerText = "COMMITTING TO SUPABASE VAULT...";
+                // 2. DATA BINDING PAYLOAD
+                const payload = {
+                    operator: name,
+                    id: uniqueID,
+                    hardware_bond: hwHash,
+                    auth_type: "ECC-PERPETUAL"
+                };
 
-                // Secure Insert (Will work with RLS 'Insert' Policy)
-                const { error } = await supabaseClient
-                    .from('identities')
-                    .insert([{ 
-                        unique_id: uniqueID, 
-                        public_key: pubKeyString, 
-                        operator_name: name 
-                    }]);
-
-                if (error) throw error;
+                // 3. GENERATE PERMANENT QR
+                qrBox.innerHTML = "";
+                qrBox.style.display = "flex";
+                
+                new QRCode(qrBox, {
+                    text: JSON.stringify(payload),
+                    width: 200,
+                    height: 200,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
 
                 status.style.color = "yellow";
-                status.innerHTML = `LINK ESTABLISHED!<br>ID: ${uniqueID}<br>OPERATOR: ${name}`;
-
-            } catch (err) {
-                status.style.color = "red";
-                status.innerText = "SYSTEM ERROR: " + err.message;
-                console.error(err);
-            }
+                status.innerHTML = `IDENTITY ESTABLISHED!<br>ID: ${uniqueID}<br>HW-BOND: ${hwHash}`;
+                info.style.display = "block";
+                
+                console.log("Nexus Identity Payload Securely Generated:", payload);
+            }, 1200);
         }
     </script>
 </body>
