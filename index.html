@@ -3,187 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROJECT NEXUS | SECURE TERMINAL</title>
+    <title>PROJECT NEXUS | CORE TERMINAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Library for scanning QR from images -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        :root { --neon: #0f0; --bg: #000; --panel: #050505; }
-        body { background: var(--bg); color: var(--neon); font-family: 'Courier New', monospace; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        :root { --neon: #0f0; --bg: #000; --panel: #0a0a0a; --border: 1px solid #0f0; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--neon); font-family: 'Courier New', monospace; margin: 0; height: 100vh; overflow: hidden; }
         
-        .box { border: 2px solid var(--neon); padding: 30px; background: var(--panel); box-shadow: 0 0 20px rgba(0,255,0,0.2); width: 350px; text-align: center; border-radius: 5px; }
-        h2 { letter-spacing: 3px; text-transform: uppercase; margin-top: 0; }
+        /* AUTH SCREEN */
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        .auth-box { border: 2px solid var(--neon); padding: 40px; background: var(--panel); width: 400px; text-align: center; box-shadow: 0 0 30px rgba(0,255,0,0.1); }
         
-        .input-group { position: relative; margin-bottom: 15px; text-align: left; }
-        input { background: #000; color: var(--neon); border: 1px solid var(--neon); padding: 12px; width: 88%; outline: none; font-size: 14px; }
-        .eye-btn { position: absolute; right: 10px; top: 12px; cursor: pointer; background: none; border: none; color: var(--neon); font-size: 18px; }
+        /* MAIN LAYOUT */
+        #main-ui { display: none; height: 100vh; grid-template-columns: 250px 1fr; }
         
-        button { background: var(--neon); color: #000; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 10px; }
-        button:hover { background: #00cc00; box-shadow: 0 0 15px var(--neon); }
+        /* SIDEBAR */
+        .sidebar { border-right: var(--border); background: var(--panel); padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .sidebar h2 { font-size: 18px; letter-spacing: 2px; border-bottom: var(--border); padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* CONTENT AREA */
+        .content { padding: 40px; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; }
+        .viewport { border: var(--border); background: var(--panel); width: 100%; max-width: 800px; padding: 30px; box-shadow: 0 0 20px rgba(0,255,0,0.05); min-height: 500px; }
 
-        #dashboard, #section-gen, #section-verify, #section-about { display: none; }
-        .nav-btn { margin-bottom: 10px; }
-        #qr-result { background: white; padding: 15px; display: inline-block; margin-top: 15px; display: none; }
-        .back-btn { background: none; color: var(--neon); border: 1px solid var(--neon); margin-top: 20px; }
+        /* INPUTS & BUTTONS */
+        .input-group { position: relative; margin-bottom: 20px; }
+        input { background: #000; color: var(--neon); border: var(--border); padding: 12px; width: 100%; outline: none; font-size: 14px; }
+        .eye { position: absolute; right: 10px; top: 10px; cursor: pointer; background: none; border: none; color: var(--neon); font-size: 18px; }
+        
+        .btn { background: var(--neon); color: #000; border: none; padding: 12px 20px; font-weight: bold; cursor: pointer; text-transform: uppercase; width: 100%; transition: 0.3s; }
+        .btn:hover { background: #00cc00; box-shadow: 0 0 15px var(--neon); }
+        .nav-btn { background: transparent; color: var(--neon); border: var(--border); text-align: left; }
+        .nav-btn:hover, .nav-btn.active { background: var(--neon); color: #000; }
+
+        /* MODULES */
+        .module { display: none; }
+        .module.active { display: block; }
+        #qr-canvas { background: white; padding: 15px; display: inline-block; margin-top: 20px; border-radius: 5px; }
+        
+        #status-msg { margin-top: 20px; padding: 10px; border: 1px dashed var(--neon); font-size: 12px; min-height: 40px; }
     </style>
 </head>
 <body>
 
-    <!-- SECTION 1: AUTHENTICATION (Login/Register) -->
-    <div id="auth-box" class="box">
-        <h2 id="auth-title">NEXUS INITIALIZE</h2>
-        <p id="auth-desc" style="font-size: 10px; color: #666;">ENTER SYSTEM CREDENTIALS</p>
-        
-        <div class="input-group">
-            <input type="text" id="reg-name" placeholder="OPERATOR NAME">
+    <!-- SECTION 1: AUTHENTICATION WALL -->
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2 id="auth-header">NEXUS REGISTRATION</h2>
+            <p style="font-size: 10px; color: #666; margin-bottom: 25px;">[ 100% ACCURACY REQUIRED FOR SYSTEM ACCESS ]</p>
+            <div class="input-group">
+                <input type="text" id="reg-name" placeholder="OPERATOR NAME">
+            </div>
+            <div class="input-group">
+                <input type="text" id="reg-city" placeholder="OPERATOR CITY">
+            </div>
+            <div class="input-group">
+                <input type="password" id="reg-pass" placeholder="SYSTEM PASSWORD">
+                <button class="eye" onclick="toggleEye('reg-pass')">👁️</button>
+            </div>
+            <button class="btn" onclick="checkAuth()">INITIALIZE LINK</button>
         </div>
-        <div class="input-group">
-            <input type="text" id="reg-city" placeholder="OPERATOR CITY">
+    </div>
+
+    <!-- SECTION 2: MAIN DASHBOARD LAYOUT -->
+    <div id="main-ui">
+        <div class="sidebar">
+            <h2>NEXUS CORE</h2>
+            <button class="btn nav-btn active" id="btn-gen" onclick="switchTab('gen')">01. GENERATE ID</button>
+            <button class="btn nav-btn" id="btn-ver" onclick="switchTab('ver')">02. VERIFY ID</button>
+            <button class="btn nav-btn" id="btn-abt" onclick="switchTab('abt')">03. ABOUT SYSTEM</button>
+            <div style="margin-top: auto;">
+                <p style="font-size: 10px; color: #555;">USER: <span id="user-tag"></span></p>
+                <button class="btn nav-btn" style="border-color: red; color: red;" onclick="location.reload()">LOGOUT</button>
+            </div>
         </div>
-        <div class="input-group">
-            <input type="password" id="reg-pass" placeholder="SYSTEM PASSWORD">
-            <button class="eye-btn" onclick="toggleView('reg-pass')">👁️</button>
+
+        <div class="content">
+            <div class="viewport">
+                
+                <!-- MODULE: GENERATE -->
+                <div id="mod-gen" class="module active">
+                    <h3>IDENTITY GENERATION MODULE</h3>
+                    <p style="font-size: 12px; color: #888;">Binding new subject to hardware-encrypted QR.</p>
+                    <div class="input-group">
+                        <input type="text" id="target-name" placeholder="TARGET FULL NAME">
+                    </div>
+                    <button class="btn" onclick="doGenerate()">GENERATE PERPETUAL QR</button>
+                    <center><div id="qr-canvas"></div></center>
+                </div>
+
+                <!-- MODULE: VERIFY -->
+                <div id="mod-ver" class="module">
+                    <h3>VERIFICATION SCANNER</h3>
+                    <p style="font-size: 12px; color: #888;">Upload QR photo to decode and verify identity.</p>
+                    <div class="input-group">
+                        <input type="file" id="photo-upload" accept="image/*" style="border: none;">
+                    </div>
+                    <button class="btn" onclick="doVerify()">PROCESS IMAGE</button>
+                    <div id="status-msg">SCANNER STATUS: IDLE</div>
+                </div>
+
+                <!-- MODULE: ABOUT -->
+                <div id="mod-abt" class="module">
+                    <h3>ABOUT PROJECT NEXUS</h3>
+                    <p style="line-height: 1.8; font-size: 14px;">
+                        Nexus is a decentralized identity framework designed for the post-AI era. <br><br>
+                        - **Hardware DNA:** Every QR is signed by device specs.<br>
+                        - **Zero-Trust:** No external database storage of keys.<br>
+                        - **Immutable:** Once generated, the data binding is permanent.
+                    </p>
+                </div>
+
+            </div>
         </div>
-        
-        <button id="main-auth-btn" onclick="handleAuth()">ACCESS SYSTEM</button>
-    </div>
-
-    <!-- SECTION 2: DASHBOARD -->
-    <div id="dashboard" class="box">
-        <h2>NEXUS DASHBOARD</h2>
-        <p style="font-size: 10px; margin-bottom: 20px;">WELCOME, OPERATOR <span id="display-user"></span></p>
-        <button class="nav-btn" onclick="showSection('section-gen')">1. GENERATE IDENTITY</button>
-        <button class="nav-btn" onclick="showSection('section-verify')">2. VERIFY IDENTITY</button>
-        <button class="nav-btn" onclick="showSection('section-about')">3. ABOUT NEXUS</button>
-        <button class="back-btn" onclick="location.reload()">LOGOUT SYSTEM</button>
-    </div>
-
-    <!-- SECTION 3: GENERATE QR -->
-    <div id="section-gen" class="box">
-        <h2>GENERATE QR</h2>
-        <input type="text" id="gen-name" placeholder="TARGET NAME">
-        <button onclick="createQR()">BIND IDENTITY</button>
-        <div id="qr-result"></div>
-        <button class="back-btn" onclick="showSection('dashboard')">BACK TO DASHBOARD</button>
-    </div>
-
-    <!-- SECTION 4: VERIFY QR -->
-    <div id="section-verify" class="box">
-        <h2>VERIFICATION</h2>
-        <p style="font-size: 10px;">UPLOAD QR IMAGE FOR SCANNING</p>
-        <input type="file" id="qr-input" accept="image/*" style="border: none;">
-        <button onclick="verifyUploadedQR()">START SCAN</button>
-        <div id="verify-status" style="margin-top: 15px; font-size: 12px;"></div>
-        <button class="back-btn" onclick="showSection('dashboard')">BACK TO DASHBOARD</button>
-    </div>
-
-    <!-- SECTION 5: ABOUT -->
-    <div id="section-about" class="box">
-        <h2>ABOUT US</h2>
-        <p style="font-size: 12px; text-align: left; line-height: 1.6;">
-            PROJECT NEXUS IS AN INDUSTRIAL-GRADE IDENTITY ECOSYSTEM BEYOND THE REACH OF CONVENTIONAL AI. <br><br>
-            - HARDWARE BINDING<br>
-            - ZERO-SERVER TRUST<br>
-            - CRYPTO-SIGNATURES
-        </p>
-        <button class="back-btn" onclick="showSection('dashboard')">BACK TO DASHBOARD</button>
     </div>
 
     <script>
-        // Check if user is already registered
-        const isRegistered = localStorage.getItem('nexus_user');
-        if(isRegistered) {
-            document.getElementById('auth-title').innerText = "SYSTEM LOGIN";
-            document.getElementById('auth-desc').innerText = "INPUT REGISTERED DETAILS";
+        // 1. AUTH LOGIC
+        const savedData = localStorage.getItem('nexus_config');
+        if(savedData) {
+            document.getElementById('auth-header').innerText = "SYSTEM LOGIN";
         }
 
-        function toggleView(id) {
-            const x = document.getElementById(id);
-            x.type = x.type === "password" ? "text" : "password";
+        function toggleEye(id) {
+            const el = document.getElementById(id);
+            el.type = el.type === 'password' ? 'text' : 'password';
         }
 
-        function handleAuth() {
-            const name = document.getElementById('reg-name').value;
-            const city = document.getElementById('reg-city').value;
-            const pass = document.getElementById('reg-pass').value;
+        function checkAuth() {
+            const n = document.getElementById('reg-name').value;
+            const c = document.getElementById('reg-city').value;
+            const p = document.getElementById('reg-pass').value;
+            if(!n || !c || !p) { alert("DATA INCOMPLETE"); return; }
 
-            if(!name || !city || !pass) { alert("ALL FIELDS REQUIRED"); return; }
+            const current = JSON.stringify({ n, c, p });
 
-            const userData = JSON.stringify({ name, city, pass });
-
-            if(!isRegistered) {
-                // Registering for the first time
-                localStorage.setItem('nexus_user', userData);
-                alert("OPERATOR REGISTERED SUCCESSFULLY");
-                enterDashboard(name);
+            if(!savedData) {
+                localStorage.setItem('nexus_config', current);
+                alert("SYSTEM REGISTERED TO OPERATOR");
+                launchUI(n);
             } else {
-                // Login check
-                const saved = localStorage.getItem('nexus_user');
-                if(saved === userData) {
-                    enterDashboard(name);
+                if(savedData === current) {
+                    launchUI(n);
                 } else {
-                    alert("ACCESS DENIED: 100% ACCURACY REQUIRED");
+                    alert("ACCESS DENIED: CREDENTIAL MISMATCH");
                 }
             }
         }
 
-        function enterDashboard(name) {
-            document.getElementById('auth-box').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('display-user').innerText = name.toUpperCase();
+        function launchUI(name) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'grid';
+            document.getElementById('user-tag').innerText = name.toUpperCase();
         }
 
-        function showSection(id) {
-            const sections = ['dashboard', 'section-gen', 'section-verify', 'section-about'];
-            sections.forEach(s => document.getElementById(s).style.display = 'none');
-            document.getElementById(id).style.display = 'block';
+        // 2. TAB SWITCHING
+        function switchTab(type) {
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('mod-' + type).classList.add('active');
+            document.getElementById('btn-' + type).classList.add('active');
         }
 
-        // --- QR GENERATION ---
-        function createQR() {
-            const target = document.getElementById('gen-name').value;
-            const qrBox = document.getElementById('qr-result');
-            if(!target) return;
+        // 3. QR GENERATION
+        function doGenerate() {
+            const name = document.getElementById('target-name').value;
+            const canvas = document.getElementById('qr-canvas');
+            if(!name) return;
 
-            qrBox.innerHTML = "";
-            qrBox.style.display = "inline-block";
-            new QRCode(qrBox, {
-                text: JSON.stringify({ name: target, timestamp: Date.now(), secure_id: Math.random().toString(36).substr(2, 9) }),
-                width: 150, height: 150
+            canvas.innerHTML = "";
+            canvas.style.display = "inline-block";
+            const payload = {
+                name: name,
+                hw: btoa(navigator.userAgent).substring(0, 10),
+                ts: Date.now()
+            };
+
+            new QRCode(canvas, {
+                text: JSON.stringify(payload),
+                width: 200, height: 200
             });
         }
 
-        // --- QR VERIFICATION FROM PHOTO ---
-        function verifyUploadedQR() {
-            const fileInput = document.getElementById('qr-input');
-            const status = document.getElementById('verify-status');
-            
-            if (fileInput.files.length === 0) { alert("SELECT A PHOTO FIRST"); return; }
+        // 4. PHOTO VERIFICATION
+        function doVerify() {
+            const input = document.getElementById('photo-upload');
+            const msg = document.getElementById('status-msg');
+            if(input.files.length === 0) return;
 
             const reader = new FileReader();
             reader.onload = function() {
                 const img = new Image();
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
+                    const c = document.createElement('canvas');
+                    const ctx = c.getContext('2d');
+                    c.width = img.width; c.height = img.height;
                     ctx.drawImage(img, 0, 0);
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    const data = ctx.getImageData(0, 0, c.width, c.height);
+                    const qr = jsQR(data.data, data.width, data.height);
 
-                    if (code) {
-                        const data = JSON.parse(code.data);
-                        status.style.color = "yellow";
-                        status.innerHTML = `✅ VERIFIED<br>NAME: ${data.name}<br>ID: ${data.secure_id}`;
+                    if(qr) {
+                        const obj = JSON.parse(qr.data);
+                        msg.style.color = "yellow";
+                        msg.innerHTML = `✅ VERIFIED OPERATOR: ${obj.name}<br>HW-BOND: ${obj.hw}`;
                     } else {
-                        status.style.color = "red";
-                        status.innerText = "❌ INVALID OR CORRUPT QR";
+                        msg.style.color = "red";
+                        msg.innerText = "❌ FAILED: NO VALID NEXUS DATA FOUND";
                     }
                 };
                 img.src = reader.result;
             };
-            reader.readAsDataURL(fileInput.files[0]);
+            reader.readAsDataURL(input.files[0]);
         }
     </script>
 </body>
